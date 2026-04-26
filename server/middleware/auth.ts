@@ -5,6 +5,7 @@ import type {
   PermissionCheckOptions,
 } from '@server/lib/permissions';
 import { getSettings } from '@server/lib/settings';
+import logger from '@server/logger';
 
 export const checkUser: Middleware = async (req, _res, next) => {
   const settings = getSettings();
@@ -28,6 +29,15 @@ export const checkUser: Middleware = async (req, _res, next) => {
       where: { id: req.session.userId },
     });
   }
+
+  logger.debug('checkUser', {
+    label: 'Auth',
+    path: req.path,
+    sessionId: req.sessionID,
+    sessionUserId: req.session?.userId,
+    foundUser: !!user,
+    userId: user?.id,
+  });
 
   if (user) {
     req.user = user;
