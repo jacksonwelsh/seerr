@@ -13,6 +13,11 @@ import gravatarUrl from 'gravatar-url';
 
 const GENERIC_AVATAR = '';
 
+// Track peers we've already warned about so we don't flood the log when
+// the same client makes many requests. Bounded to keep memory in check.
+const warnedUntrustedPeers = new Set<string>();
+const MAX_WARNED_PEERS = 50;
+
 export const headerAuth: Middleware = async (req, _res, next) => {
   const settings = getSettings();
   const config = settings.main.headerAuth;
@@ -28,6 +33,27 @@ export const headerAuth: Middleware = async (req, _res, next) => {
   // can reach the port forge their apparent source address.
   const peer = req.socket?.remoteAddress ?? undefined;
   if (!isTrustedProxy(peer, config.trustedProxies)) {
+    // Diagnostic: if the request actually carried the user header,
+    // the operator probably *meant* for it to be honored — surface a
+    // one-shot warning so misconfiguration is visible in the logs.
+    const userHeaderName = config.userHeader.toLowerCase();
+    const hadAuthHeader =
+      typeof req.headers[userHeaderName] === 'string' &&
+      (req.headers[userHeaderName] as string).trim().length > 0;
+    if (hadAuthHeader && peer && !warnedUntrustedPeers.has(peer)) {
+      if (warnedUntrustedPeers.size >= MAX_WARNED_PEERS) {
+        warnedUntrustedPeers.clear();
+      }
+      warnedUntrustedPeers.add(peer);
+      logger.warn(
+        'Ignoring forward-auth headers from untrusted peer; add this address to Trusted Proxies in Settings → Users → Forward Auth (note: SSR loopback requires 127.0.0.1/32 and ::1/128)',
+        {
+          label: 'Header Auth',
+          peer,
+          path: req.path,
+        }
+      );
+    }
     return next();
   }
 
