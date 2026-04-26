@@ -29,6 +29,8 @@ const messages = defineMessages('components.Login', {
   signinwithjellyfin: 'Use your {mediaServerName} account',
   signinwithoverseerr: 'Use your {applicationTitle} account',
   orsigninwith: 'Or sign in with',
+  forwardAuthHint:
+    'Single sign-on is configured for this server. If you are not redirected automatically, return through your identity provider.',
 });
 
 const Login = () => {
@@ -197,6 +199,11 @@ const Login = () => {
               </div>
             </Transition>
             <div className="px-10 py-8">
+              {settings.currentSettings.headerAuthEnabled && (
+                <div className="mb-6 rounded-md bg-indigo-600/30 p-3 text-center text-sm text-indigo-100">
+                  {intl.formatMessage(messages.forwardAuthHint)}
+                </div>
+              )}
               <SwitchTransition mode="out-in">
                 <CSSTransition
                   key={mediaServerLogin ? 'ms' : 'local'}

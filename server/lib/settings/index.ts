@@ -129,6 +129,24 @@ export interface ProxySettings {
   bypassLocalAddresses: boolean;
 }
 
+export interface HeaderAuthRoleMapping {
+  role: string;
+  permissions: number;
+}
+
+export interface HeaderAuthSettings {
+  enabled: boolean;
+  userHeader: string;
+  usernameHeader: string;
+  emailHeader: string;
+  rolesHeader: string;
+  rolesSeparator: string;
+  adminRoles: string[];
+  roleMapping: HeaderAuthRoleMapping[];
+  trustedProxies: string[];
+  syncPermissions: boolean;
+}
+
 export interface MainSettings {
   apiKey: string;
   applicationTitle: string;
@@ -156,6 +174,7 @@ export interface MainSettings {
   enableSpecialEpisodes: boolean;
   locale: string;
   youtubeUrl: string;
+  headerAuth: HeaderAuthSettings;
 }
 
 export interface ProxySettings {
@@ -195,6 +214,7 @@ interface FullPublicSettings extends PublicSettings {
   hideBlocklisted: boolean;
   localLogin: boolean;
   mediaServerLogin: boolean;
+  headerAuthEnabled: boolean;
   movie4kEnabled: boolean;
   series4kEnabled: boolean;
   discoverRegion: string;
@@ -427,6 +447,18 @@ class Settings {
         enableSpecialEpisodes: false,
         locale: 'en',
         youtubeUrl: '',
+        headerAuth: {
+          enabled: false,
+          userHeader: 'x-auth-user',
+          usernameHeader: 'x-auth-username',
+          emailHeader: 'x-auth-email',
+          rolesHeader: 'x-auth-roles',
+          rolesSeparator: ',',
+          adminRoles: [],
+          roleMapping: [],
+          trustedProxies: [],
+          syncPermissions: true,
+        },
       },
       plex: {
         name: '',
@@ -708,6 +740,7 @@ class Settings {
       hideBlocklisted: this.data.main.hideBlocklisted,
       localLogin: this.data.main.localLogin,
       mediaServerLogin: this.data.main.mediaServerLogin,
+      headerAuthEnabled: this.data.main.headerAuth.enabled,
       jellyfinExternalHost: this.data.jellyfin.externalHostname,
       jellyfinForgotPasswordUrl: this.data.jellyfin.jellyfinForgotPasswordUrl,
       movie4kEnabled: this.data.radarr.some(

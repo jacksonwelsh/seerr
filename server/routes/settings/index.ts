@@ -82,6 +82,22 @@ settingsRoutes.post('/main', async (req, res) => {
   return res.status(200).json(settings.main);
 });
 
+settingsRoutes.get('/main/headerauth', (_req, res) => {
+  const settings = getSettings();
+  res.status(200).json(settings.main.headerAuth);
+});
+
+settingsRoutes.post('/main/headerauth', async (req, res) => {
+  const settings = getSettings();
+
+  // Use the `main` setter so that array fields (adminRoles, roleMapping,
+  // trustedProxies) are replaced wholesale rather than index-merged.
+  settings.main = { ...settings.main, headerAuth: req.body };
+  await settings.save();
+
+  return res.status(200).json(settings.main.headerAuth);
+});
+
 settingsRoutes.get('/network', (req, res) => {
   const settings = getSettings();
 

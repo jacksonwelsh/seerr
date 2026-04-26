@@ -254,6 +254,43 @@ components:
         enableSpecialEpisodes:
           type: boolean
           example: false
+    HeaderAuthSettings:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        userHeader:
+          type: string
+        usernameHeader:
+          type: string
+        emailHeader:
+          type: string
+        rolesHeader:
+          type: string
+        rolesSeparator:
+          type: string
+        adminRoles:
+          type: array
+          items:
+            type: string
+        roleMapping:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+              permissions:
+                type: number
+            required:
+              - role
+              - permissions
+        trustedProxies:
+          type: array
+          items:
+            type: string
+        syncPermissions:
+          type: boolean
     NetworkSettings:
       type: object
       properties:
@@ -2254,6 +2291,37 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NetworkSettings'
+  /settings/main/headerauth:
+    get:
+      summary: Get forward-auth header settings
+      description: Retrieves the forward-auth (trusted-proxy header) settings.
+      tags:
+        - settings
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeaderAuthSettings'
+    post:
+      summary: Update forward-auth header settings
+      description: Updates the forward-auth (trusted-proxy header) settings.
+      tags:
+        - settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeaderAuthSettings'
+      responses:
+        '200':
+          description: 'Values were sucessfully updated'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeaderAuthSettings'
   /settings/main/regenerate:
     post:
       summary: Get main settings with newly-generated API key
