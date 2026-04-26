@@ -53,7 +53,7 @@ const messages = defineMessages('components.Settings.SettingsUsers', {
   forwardAuthEnabledTip:
     'When enabled, requests from trusted proxies that include the configured user header will bypass the sign-in screen.',
   trustedProxiesEmptyWarning:
-    'Forward Auth is inert until at least one CIDR is added to Trusted Proxies. This is a deliberate safety default.',
+    'No proxies are trusted yet. Loopback (127.0.0.0/8 and ::1) is always trusted, so SSR works out of the box, but forward-auth requests from your reverse proxy will be ignored until its address is added.',
   userHeader: 'User ID Header',
   usernameHeader: 'Username Header',
   emailHeader: 'Email Header',
@@ -63,7 +63,7 @@ const messages = defineMessages('components.Settings.SettingsUsers', {
     'Character used to split the roles header into individual role names.',
   trustedProxies: 'Trusted Proxies',
   trustedProxiesTip:
-    'IPs or CIDR blocks allowed to send authentication headers. Headers from any other source are ignored. The check is performed against the direct TCP peer, not X-Forwarded-For.',
+    'IPs or CIDR blocks allowed to send authentication headers, in addition to loopback (which is always trusted so SSR works without configuration). Headers from any other source are ignored. The check is performed against the direct TCP peer, not X-Forwarded-For.',
   adminRoles: 'Admin Roles',
   adminRolesTip:
     'Users carrying any of these roles in the roles header are granted full administrator access.',

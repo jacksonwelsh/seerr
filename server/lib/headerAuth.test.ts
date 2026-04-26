@@ -100,23 +100,32 @@ describe('ipMatchesCidr', () => {
 });
 
 describe('isTrustedProxy', () => {
-  it('returns false when the trusted-proxy list is empty', () => {
-    assert.equal(isTrustedProxy('127.0.0.1', []), false);
-  });
-
   it('returns false when the remote address is missing', () => {
     assert.equal(isTrustedProxy(undefined, ['127.0.0.1/32']), false);
   });
 
   it('returns true when any CIDR matches', () => {
     assert.equal(
-      isTrustedProxy('10.0.0.5', ['127.0.0.1/32', '10.0.0.0/24']),
+      isTrustedProxy('10.0.0.5', ['10.0.0.0/24', '192.168.0.0/16']),
       true
     );
   });
 
-  it('returns false when no CIDR matches', () => {
+  it('returns false when no CIDR matches and address is not loopback', () => {
     assert.equal(isTrustedProxy('192.168.1.1', ['10.0.0.0/24']), false);
+  });
+
+  it('always trusts IPv4 loopback even with empty list', () => {
+    assert.equal(isTrustedProxy('127.0.0.1', []), true);
+    assert.equal(isTrustedProxy('127.0.0.5', []), true);
+  });
+
+  it('always trusts IPv6 loopback even with empty list', () => {
+    assert.equal(isTrustedProxy('::1', []), true);
+  });
+
+  it('always trusts IPv4-mapped IPv6 loopback', () => {
+    assert.equal(isTrustedProxy('::ffff:127.0.0.1', []), true);
   });
 });
 

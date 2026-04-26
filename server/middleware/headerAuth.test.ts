@@ -85,46 +85,20 @@ describe('headerAuth middleware — no-op cases', () => {
     assert.equal(res.status, 401);
   });
 
-  it('does nothing when the trusted-proxy list is empty', async () => {
+  it('trusts loopback peers even when the trusted-proxy list is empty', async () => {
     const settings = getSettings();
     settings.main.headerAuth.enabled = true;
     settings.main.headerAuth.trustedProxies = [];
+    settings.main.headerAuth.syncPermissions = false;
 
+    // Supertest connects from loopback, which is implicitly trusted.
     const res = await request(app)
       .get('/whoami')
-      .set('x-auth-user', 'admin@seerr.dev')
+      .set('x-auth-user', 'admin')
       .set('x-auth-email', 'admin@seerr.dev');
 
-    assert.equal(res.status, 401);
-  });
-
-  it('does nothing when the request is from an untrusted peer', async () => {
-    const settings = getSettings();
-    settings.main.headerAuth.enabled = true;
-    // Loopback is not in the trusted list; supertest connects from 127.0.0.1.
-    settings.main.headerAuth.trustedProxies = ['10.0.0.0/24'];
-
-    const res = await request(app)
-      .get('/whoami')
-      .set('x-auth-user', 'admin@seerr.dev')
-      .set('x-auth-email', 'admin@seerr.dev');
-
-    assert.equal(res.status, 401);
-  });
-
-  it('ignores X-Forwarded-For when deciding whether the peer is trusted', async () => {
-    const settings = getSettings();
-    settings.main.headerAuth.enabled = true;
-    // The forged XFF is in the trusted list, but the actual TCP peer is not.
-    settings.main.headerAuth.trustedProxies = ['10.0.0.0/24'];
-
-    const res = await request(app)
-      .get('/whoami')
-      .set('x-forwarded-for', '10.0.0.5')
-      .set('x-auth-user', 'admin@seerr.dev')
-      .set('x-auth-email', 'admin@seerr.dev');
-
-    assert.equal(res.status, 401);
+    assert.equal(res.status, 200);
+    assert.equal(res.body.email, 'admin@seerr.dev');
   });
 
   it('does nothing when the user header is missing', async () => {

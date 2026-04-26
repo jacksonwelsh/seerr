@@ -53,7 +53,7 @@ export const headerAuth: Middleware = async (req, _res, next) => {
       }
       warnedUntrustedPeers.add(peer);
       logger.warn(
-        'Ignoring forward-auth headers from untrusted peer; add this address to Trusted Proxies in Settings → Users → Forward Auth (note: SSR loopback requires 127.0.0.1/32 and ::1/128)',
+        'Ignoring forward-auth headers from untrusted peer; add this address to Trusted Proxies in Settings → Users → Forward Auth',
         {
           label: 'Header Auth',
           peer,

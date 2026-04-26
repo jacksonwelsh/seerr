@@ -126,11 +126,23 @@ export function ipMatchesCidr(ip: string, cidr: string): boolean {
   return (value & parsed.mask) === parsed.base;
 }
 
+// Loopback is always trusted: the seerr process itself makes SSR
+// loopback API calls and we'd otherwise need to ask every operator
+// to add 127.0.0.1/::1 to their trusted-proxy list. Local-only access
+// is generally a higher trust boundary anyway.
+const IMPLICIT_LOOPBACK_CIDRS = ['127.0.0.0/8', '::1/128'];
+
 export function isTrustedProxy(
   remoteAddress: string | undefined | null,
   trustedProxies: string[]
 ): boolean {
-  if (!remoteAddress || trustedProxies.length === 0) return false;
+  if (!remoteAddress) return false;
+  if (
+    IMPLICIT_LOOPBACK_CIDRS.some((cidr) => ipMatchesCidr(remoteAddress, cidr))
+  ) {
+    return true;
+  }
+  if (trustedProxies.length === 0) return false;
   return trustedProxies.some((cidr) => ipMatchesCidr(remoteAddress, cidr));
 }
 
