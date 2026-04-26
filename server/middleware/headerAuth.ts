@@ -134,6 +134,12 @@ export const headerAuth: Middleware = async (req, _res, next) => {
     }
 
     req.session!.userId = user.id;
+    logger.debug('Forward-auth set session userId', {
+      label: 'Header Auth',
+      userId: user.id,
+      sessionId: req.sessionID,
+      path: req.path,
+    });
   } catch (e) {
     logger.error('Failed to process forward-auth headers', {
       label: 'Header Auth',
