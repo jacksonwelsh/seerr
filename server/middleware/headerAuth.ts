@@ -32,14 +32,21 @@ export const headerAuth: Middleware = async (req, _res, next) => {
   // is influenced by `X-Forwarded-For` and would let an attacker who
   // can reach the port forge their apparent source address.
   const peer = req.socket?.remoteAddress ?? undefined;
+  const userHeaderName = config.userHeader.toLowerCase();
+  const userHeaderValue = req.headers[userHeaderName];
+  logger.debug('Forward-auth middleware fired', {
+    label: 'Header Auth',
+    path: req.path,
+    peer,
+    hasUserHeader:
+      typeof userHeaderValue === 'string' && userHeaderValue.length > 0,
+  });
   if (!isTrustedProxy(peer, config.trustedProxies)) {
     // Diagnostic: if the request actually carried the user header,
     // the operator probably *meant* for it to be honored — surface a
     // one-shot warning so misconfiguration is visible in the logs.
-    const userHeaderName = config.userHeader.toLowerCase();
     const hadAuthHeader =
-      typeof req.headers[userHeaderName] === 'string' &&
-      (req.headers[userHeaderName] as string).trim().length > 0;
+      typeof userHeaderValue === 'string' && userHeaderValue.trim().length > 0;
     if (hadAuthHeader && peer && !warnedUntrustedPeers.has(peer)) {
       if (warnedUntrustedPeers.size >= MAX_WARNED_PEERS) {
         warnedUntrustedPeers.clear();
