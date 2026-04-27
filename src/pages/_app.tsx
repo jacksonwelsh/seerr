@@ -299,22 +299,7 @@ CoreApp.getInitialProps = async (initialProps) => {
           });
           ctx.res.end();
         }
-      } catch (e) {
-        // Verbose diagnostic so we can see why SSR thought /me failed.
-        // eslint-disable-next-line no-console
-        console.error(
-          '[SSR auth/me]',
-          'pathname=',
-          router.pathname,
-          'status=',
-          (e as { response?: { status?: number } }).response?.status,
-          'data=',
-          JSON.stringify(
-            (e as { response?: { data?: unknown } }).response?.data
-          ),
-          'message=',
-          (e as Error).message
-        );
+      } catch {
         // If there is no user, and ctx.res is set (to check if we are on the server side)
         // _AND_ we are not already on the login or setup route, redirect to /login with a 307
         // before anything actually renders

@@ -34,13 +34,6 @@ export const headerAuth: Middleware = async (req, _res, next) => {
   const peer = req.socket?.remoteAddress ?? undefined;
   const userHeaderName = config.userHeader.toLowerCase();
   const userHeaderValue = req.headers[userHeaderName];
-  logger.debug('Forward-auth middleware fired', {
-    label: 'Header Auth',
-    path: req.path,
-    peer,
-    hasUserHeader:
-      typeof userHeaderValue === 'string' && userHeaderValue.length > 0,
-  });
   if (!isTrustedProxy(peer, config.trustedProxies)) {
     // Diagnostic: if the request actually carried the user header,
     // the operator probably *meant* for it to be honored — surface a
@@ -134,12 +127,6 @@ export const headerAuth: Middleware = async (req, _res, next) => {
     }
 
     req.session!.userId = user.id;
-    logger.debug('Forward-auth set session userId', {
-      label: 'Header Auth',
-      userId: user.id,
-      sessionId: req.sessionID,
-      path: req.path,
-    });
   } catch (e) {
     logger.error('Failed to process forward-auth headers', {
       label: 'Header Auth',
