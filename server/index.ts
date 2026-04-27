@@ -6,7 +6,6 @@ import { Session } from '@server/entity/Session';
 import { User } from '@server/entity/User';
 import { initI18n } from '@server/i18n';
 import { startJobs } from '@server/job/schedule';
-import { isTrustedProxy } from '@server/lib/headerAuth';
 import notificationManager from '@server/lib/notifications';
 import DiscordAgent from '@server/lib/notifications/agents/discord';
 import EmailAgent from '@server/lib/notifications/agents/email';
@@ -232,41 +231,18 @@ app
       OpenApiValidator.middleware({
         apiSpec: API_SPEC_PATH,
         validateRequests: true,
-        validateSecurity: {
-          // Default OpenAPI security handlers reject any request without
-          // `connect.sid`, which kills forward-auth requests because the
-          // SSR loopback /me call has no cookie yet. Override to accept
-          // forward-auth headers from a trusted peer as an alternative
-          // form of "cookieAuth". The route handlers' own
-          // `isAuthenticated()` checks remain authoritative.
-          handlers: {
-            cookieAuth: (req) => {
-              const cookie = req.headers.cookie;
-              if (
-                typeof cookie === 'string' &&
-                /(?:^|;\s*)connect\.sid=/.test(cookie)
-              ) {
-                return true;
-              }
-              const config = getSettings().main.headerAuth;
-              if (!config.enabled) return false;
-              const peer = (
-                req.socket as { remoteAddress?: string } | undefined
-              )?.remoteAddress;
-              if (!isTrustedProxy(peer, config.trustedProxies)) return false;
-              const userHeaderValue =
-                req.headers[config.userHeader.toLowerCase()];
-              return (
-                typeof userHeaderValue === 'string' &&
-                userHeaderValue.trim().length > 0
-              );
-            },
-            apiKey: (req) => {
-              const key = req.headers['x-api-key'];
-              return typeof key === 'string' && key.length > 0;
-            },
-          },
-        },
+        // The OpenAPI spec declares a global `cookieAuth` requirement.
+        // The validator's built-in check rejects any request without
+        // `connect.sid` *before* custom handlers get a chance to weigh
+        // in (see openapi.security.js:109 — AuthValidator.validate()
+        // throws first). That kills forward-auth requests because the
+        // SSR loopback /me call has no cookie yet, only `x-auth-*`
+        // headers. Disable the validator's security check and rely on
+        // each route's own `isAuthenticated()` middleware as the
+        // authoritative auth gate — that's where the real check has
+        // always lived. Trade-off: unauthenticated requests now get
+        // 403 from the route layer instead of 401 from the validator.
+        validateSecurity: false,
       })
     );
     /**
